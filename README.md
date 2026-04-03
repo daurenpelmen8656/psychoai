@@ -1,1 +1,1 @@
-# PsychoAI
+# psychoai
