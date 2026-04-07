@@ -1,4 +1,4 @@
-// ===== CHART INITIALIZATION =====
+        // ===== CHART INITIALIZATION =====
         function initMoodChart() {
             const ctx = document.getElementById('moodChart');
             if (!ctx) return;

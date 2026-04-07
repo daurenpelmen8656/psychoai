@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="%PUBLIC_URL%/styles.css">
 </head>
 <body>
+    <div id="root" style="display:none"></div>
     <!-- Skip Link for Accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -63,10 +64,10 @@
             </nav>
 
             <div class="nav-actions">
-                <button class="btn btn-ghost" onclick="showModal('login')" aria-label="Log in">Log In</button>
-                <button class="btn btn-primary" onclick="showModal('register')" aria-label="Get started free">
+                <a href="/chat" class="btn btn-ghost" aria-label="Sign in">Sign In</a>
+                <a href="/onboarding" class="btn btn-primary" aria-label="Get started free">
                     Get Started Free
-                </button>
+                </a>
                 <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
                     <i class="fas fa-bars" id="menuIcon"></i>
                 </button>
@@ -80,8 +81,8 @@
         <a href="#how-it-works" onclick="closeMobileMenu()">How It Works</a>
         <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
         <a href="#privacy" onclick="closeMobileMenu()">Privacy</a>
-        <a href="#" onclick="showModal('login'); closeMobileMenu();">Log In</a>
-        <a href="#" onclick="showModal('register'); closeMobileMenu();" style="color: var(--primary); font-weight: 600;">Get Started Free</a>
+        <a href="/chat" onclick="closeMobileMenu();">Sign In</a>
+        <a href="/onboarding" onclick="closeMobileMenu();" style="color: var(--primary); font-weight: 600;">Get Started Free</a>
     </nav>
 
     <!-- ===== LANDING PAGE ===== -->
@@ -101,12 +102,12 @@
                         all in a safe, private, and judgment-free space.
                     </p>
                     <div class="hero-actions">
-                        <button class="btn btn-primary btn-lg pulse" onclick="showModal('register')">
+                        <a href="/onboarding" class="btn btn-primary btn-lg pulse">
                             <i class="fas fa-sparkles"></i> Start Your Journey
-                        </button>
-                        <button class="btn btn-outline btn-lg" onclick="showPage('dashboard')">
+                        </a>
+                        <a href="/dashboard" class="btn btn-outline btn-lg">
                             <i class="fas fa-play"></i> See Demo Dashboard
-                        </button>
+                        </a>
                     </div>
                     <div class="hero-trust">
                         <div class="trust-avatars">
@@ -670,9 +671,9 @@
                 <div class="animate-on-scroll">
                     <h2>Begin Your Journey to<br><span class="gradient-text">Better Mental Health</span></h2>
                     <p>Join thousands of people who've already taken the first step. Your AI psychologist is ready whenever you are.</p>
-                    <button class="btn btn-primary btn-lg pulse" onclick="showModal('register')">
+                    <a href="/onboarding" class="btn btn-primary btn-lg pulse">
                         <i class="fas fa-sparkles"></i> Start Free — No Credit Card
-                    </button>
+                    </a>
                 </div>
             </section>
         </main>

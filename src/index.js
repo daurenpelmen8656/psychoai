@@ -1,17 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+// Создаём root элемент динамически
+const rootEl = document.createElement('div');
+rootEl.id = 'react-root';
+rootEl.style.cssText = 'position:fixed;inset:0;z-index:9999;';
+document.body.appendChild(rootEl);
+
+const root = ReactDOM.createRoot(rootEl);
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
