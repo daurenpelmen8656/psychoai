@@ -79,6 +79,15 @@ export default function Profile() {
         .nav-item:hover { background:rgba(74,108,247,0.08) !important; color:#4A6CF7 !important; }
         .history-row:hover { background:rgba(74,108,247,0.04) !important; }
         .achievement-card:hover { transform:scale(1.04); }
+        @media (max-width: 768px) {
+          .avatar-section { padding: 20px 16px !important; }
+          .stats-row { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+          .tabs-row { overflow-x: auto !important; }
+          .achievements-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .settings-list { gap: 8px !important; }
+          .history-list { margin: 0 -8px !important; }
+          .profile-nav { padding-bottom: max(12px, env(safe-area-inset-bottom)) !important; }
+        }
       `}</style>
 
       <div style={{ minHeight:'100vh', background:s.bg, fontFamily:"'Inter',sans-serif", transition:'all 0.3s' }}>
@@ -103,7 +112,7 @@ export default function Profile() {
         <div style={{ maxWidth:'600px', margin:'0 auto', padding:'24px 20px 100px' }}>
 
           {/* AVATAR & NAME */}
-          <div style={{
+          <div className="avatar-section" style={{
             background: 'linear-gradient(135deg,rgba(74,108,247,0.08),rgba(139,92,246,0.08))',
             borderRadius:'24px', padding:'28px 24px', marginBottom:'20px',
             border:'1px solid rgba(74,108,247,0.12)',
@@ -187,7 +196,7 @@ export default function Profile() {
           </div>
 
           {/* STATS ROW */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
+          <div className="stats-row" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px', marginBottom:'20px' }}>
             {[
               { value:'12',  label:'Sessions',  color:'#4A6CF7' },
               { value:'7',   label:'Day Streak', color:'#F59E0B' },
@@ -204,7 +213,7 @@ export default function Profile() {
           </div>
 
           {/* TABS */}
-          <div style={{
+          <div className="tabs-row" style={{
             display:'flex', gap:'4px', background:s.inputBg,
             borderRadius:'12px', padding:'4px', marginBottom:'20px',
           }}>
@@ -252,7 +261,7 @@ export default function Profile() {
               </div>
 
               {/* Settings */}
-              <div style={{ background:s.card, borderRadius:'18px', padding:'20px', border:`1px solid ${s.border}` }}>
+              <div className="settings-section" style={{ background:s.card, borderRadius:'18px', padding:'20px', border:`1px solid ${s.border}` }}>
                 <div style={{ fontWeight:'700', color:s.text, marginBottom:'14px' }}>⚙️ Settings</div>
                 {[
                   { icon:'🧠', label:'Change AI therapist',  action:() => navigate('/onboarding') },
@@ -260,7 +269,10 @@ export default function Profile() {
                   { icon:'🌐', label:'Change language',      action:() => navigate('/chat') },
                   { icon:'🔔', label:'Notifications',        action:() => {} },
                   { icon:'🔒', label:'Privacy & Data',       action:() => {} },
-                  { icon:'🚪', label:'Log out',              action:() => navigate('/'), danger:true },
+                  { icon:'🚪', label:'Log out',              action:() => {
+                  localStorage.removeItem('mb_user');
+                  navigate('/');
+                }, danger:true },
                 ].map(item => (
                   <button key={item.label} onClick={item.action} style={{
                     width:'100%', padding:'13px 14px', borderRadius:'10px', border:'none',
@@ -283,7 +295,7 @@ export default function Profile() {
           {/* HISTORY TAB */}
           {tab==='history' && (
             <div style={{ animation:'fadeIn 0.3s ease' }}>
-              <div style={{ background:s.card, borderRadius:'18px', border:`1px solid ${s.border}`, overflow:'hidden' }}>
+              <div className="history-list" style={{ background:s.card, borderRadius:'18px', border:`1px solid ${s.border}`, overflow:'hidden' }}>
                 {HISTORY.map((h, i) => (
                   <div key={i} className="history-row" style={{
                     padding:'16px 20px', borderBottom: i<HISTORY.length-1 ? `1px solid ${s.border}` : 'none',
@@ -319,7 +331,7 @@ export default function Profile() {
           {/* ACHIEVEMENTS TAB */}
           {tab==='achievements' && (
             <div style={{ animation:'fadeIn 0.3s ease' }}>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px' }}>
+              <div className="achievements-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'12px' }}>
                 {ACHIEVEMENTS.map(a => (
                   <div key={a.label} className="achievement-card" style={{
                     background: a.unlocked ? `${a.color}10` : s.inputBg,
@@ -352,7 +364,7 @@ export default function Profile() {
         </div>
 
         {/* BOTTOM NAV */}
-        <div style={{
+        <div className="profile-nav" style={{
           position:'fixed', bottom:0, left:0, right:0,
           background:s.card, borderTop:`1px solid ${s.border}`,
           display:'flex', padding:'8px 0 12px',

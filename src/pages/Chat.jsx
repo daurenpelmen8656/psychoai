@@ -187,7 +187,7 @@ export default function Chat() {
   const [theme, setTheme] = useState('light'); // light | dark | accessible
   const [lang, setLang] = useState('en');
   const [fontSize, setFontSize] = useState('medium');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [activeChat, setActiveChat] = useState(1);
@@ -407,9 +407,14 @@ export default function Chat() {
         .history-item:hover { background: rgba(74,108,247,0.07) !important; }
         .send-btn:hover { transform: scale(1.1); }
         .suggest-btn:hover { border-color: #4A6CF7 !important; color: #4A6CF7 !important; background: rgba(74,108,247,0.06) !important; }
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
           .sidebar-wrap { position: fixed !important; z-index: 150; height: 100vh; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
           .overlay { display: block !important; }
+          .welcome-title { font-size: 1.2rem !important; }
+          .suggest-btn { font-size: 0.8rem !important; padding: 8px 12px !important; }
+          .msg-bubble { max-width: 85% !important; }
+          .settings-panel { right: 8px !important; left: 8px !important; width: auto !important; }
+          .lang-panel { right: 8px !important; left: 8px !important; width: auto !important; }
         }
       `}</style>
 
@@ -474,7 +479,10 @@ export default function Chat() {
               {[
                 { icon: '🎮', label: t.games, onClick: () => navigate('/games') },
                 { icon: '👤', label: t.profile, onClick: () => navigate('/profile') },
-                { icon: '🚪', label: t.logout, onClick: () => navigate('/') },
+                { icon: '🚪', label: t.logout, onClick: () => {
+                  localStorage.removeItem('mb_user');
+                  navigate('/');
+                }},
               ].map(item => (
                 <button key={item.label} onClick={item.onClick} style={{
                   ...styles.iconBtn, width: '100%', justifyContent: 'flex-start',
@@ -511,7 +519,7 @@ export default function Chat() {
 
           {/* SETTINGS PANEL */}
           {settingsOpen && (
-            <div style={styles.settingsPanel}>
+            <div className="settings-panel" style={styles.settingsPanel}>
               <div style={{ fontWeight: '700', marginBottom: '16px', color: s.text }}>⚙️ {t.settings}</div>
 
               {/* Theme */}
@@ -542,7 +550,7 @@ export default function Chat() {
 
           {/* LANGUAGE PANEL */}
           {langOpen && (
-            <div style={styles.langPanel}>
+            <div className="lang-panel" style={styles.langPanel}>
               <div style={{ fontWeight: '700', marginBottom: '12px', color: s.text }}>🌐 {t.language}</div>
               {Object.entries(LANGUAGES).map(([code, name]) => (
                 <button key={code} onClick={() => { setLang(code); setLangOpen(false); }} style={{

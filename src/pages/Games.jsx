@@ -97,7 +97,7 @@ function MemoryGame({ s, onBack }) {
         <h2 style={{ fontSize: '1.6rem', fontWeight: '700', color: s.text, marginBottom: '8px' }}>Memory Game</h2>
         <p style={{ color: s.textSec }}>Flip cards to find matching pairs. Train your memory!</p>
       </div>
-      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div className="level-select" style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
         {Object.entries(LEVELS).map(([key, cfg]) => (
           <button key={key} onClick={() => startGame(key)} style={{
             padding: '24px 32px', borderRadius: '16px', border: `2px solid ${cfg.color}22`,
@@ -135,7 +135,7 @@ function MemoryGame({ s, onBack }) {
   // Game board
   return (
     <div style={{ animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="stats-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <button onClick={() => setLevel(null)} style={backBtnStyle(s)}>← Back</button>
         <div style={{ display: 'flex', gap: '20px' }}>
           <Stat label="Moves" value={moves} color="#4A6CF7" />
@@ -145,7 +145,7 @@ function MemoryGame({ s, onBack }) {
         <button onClick={() => startGame(level)} style={outlineBtnStyle(s)}>↺ Restart</button>
       </div>
 
-      <div style={{
+      <div className={cols === 6 ? 'memory-board-hard' : 'memory-board'} style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
         gap: '10px', maxWidth: cols === 6 ? '520px' : '380px', margin: '0 auto',
@@ -286,7 +286,7 @@ function LogicGame({ s, onBack }) {
           {total} questions to test your reasoning, pattern recognition and critical thinking.
         </p>
       </div>
-      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
+      <div className="info-cards" style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
         {[['🕐', '~5 min', 'Duration'], ['❓', `${total} questions`, 'Questions'], ['💡', 'Hints available', 'Help']].map(([icon, val, lbl]) => (
           <div key={lbl} style={{
             padding: '16px 20px', borderRadius: '14px', background: s.card,
@@ -539,6 +539,15 @@ export default function Games() {
         @keyframes shimmer { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
         .game-card:hover { transform: translateY(-5px) !important; }
         .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74,108,247,0.5) !important; }
+        @media (max-width: 768px) {
+          .games-grid { grid-template-columns: 1fr !important; }
+          .memory-board-hard { grid-template-columns: repeat(4, 1fr) !important; max-width: 100% !important; }
+          .memory-board-hard .memory-card { font-size: 1.1rem !important; }
+          .level-select { flex-direction: column !important; align-items: stretch !important; }
+          .level-select button { min-width: auto !important; }
+          .stats-bar { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+          .info-cards { flex-direction: column !important; }
+        }
       `}</style>
 
       <div style={{
@@ -594,7 +603,7 @@ export default function Games() {
               </div>
 
               {/* Game cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '16px' }}>
+              <div className="games-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '16px' }}>
                 {GAME_CARDS.map(game => (
                   <div
                     key={game.id}

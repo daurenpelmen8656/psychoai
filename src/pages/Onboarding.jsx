@@ -91,10 +91,10 @@ function StepWelcome({ data, setData }) {
 function StepLanguage({ data, setData }) {
   return (
     <div>
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-        gap: '10px',
-      }}>
+<div className="lang-grid" style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+          gap: '10px',
+        }}>
         {LANGUAGES.map(lang => {
           const active = data.lang === lang.code;
           return (
@@ -330,6 +330,16 @@ export default function Onboarding() {
         .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74,108,247,0.5) !important; }
         .next-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none !important; }
         .skip-btn:hover { color: #4A6CF7 !important; }
+        @media (max-width: 768px) {
+          .step-title { font-size: 1.3rem !important; }
+          .step-subtitle { font-size: 0.85rem !important; }
+          .lang-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .goal-btn { padding: 14px 12px !important; }
+          .therapist-btn { padding: 14px 14px !important; }
+          .welcome-input { padding: 12px 14px !important; }
+          .nav-btns { flex-direction: column !important; gap: 10px !important; }
+          .nav-btns button { width: 100% !important; }
+        }
       `}</style>
 
       <div style={{
@@ -405,10 +415,10 @@ export default function Onboarding() {
               }}>
                 Step {step + 1} of {STEPS.length}
               </div>
-              <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1E293B', marginBottom: '4px' }}>
+              <h1 className="step-title" style={{ fontSize: '1.6rem', fontWeight: '800', color: '#1E293B', marginBottom: '4px' }}>
                 {STEPS[step].title}
               </h1>
-              <p style={{ color: '#64748B', fontSize: '0.95rem' }}>{STEPS[step].subtitle}</p>
+              <p className="step-subtitle" style={{ color: '#64748B', fontSize: '0.95rem' }}>{STEPS[step].subtitle}</p>
             </div>
 
             {/* Step content */}
@@ -421,7 +431,7 @@ export default function Onboarding() {
             </div>
 
             {/* NAV BUTTONS */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div className="nav-btns" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               {step > 0 && (
                 <button onClick={goBack} style={{
                   padding: '14px 20px', borderRadius: '14px',

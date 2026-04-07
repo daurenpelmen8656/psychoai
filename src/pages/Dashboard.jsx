@@ -120,6 +120,14 @@ export default function Dashboard() {
         .quick-action:hover { transform:translateY(-3px) !important; box-shadow:0 8px 24px rgba(74,108,247,0.2) !important; }
         .mood-btn:hover { transform:scale(1.2) !important; }
         .nav-item:hover { background:rgba(74,108,247,0.08) !important; color:#4A6CF7 !important; }
+        @media (max-width: 768px) {
+          .greeting { font-size: 1.3rem !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .quick-actions { grid-template-columns: 1fr 1fr !important; }
+          .achievements-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          .stat-card { padding: 14px !important; }
+          .bottom-nav { padding-bottom: max(12px, env(safe-area-inset-bottom)) !important; }
+        }
       `}</style>
 
       <div style={{ minHeight:'100vh', background:s.bg, fontFamily:"'Inter',sans-serif", transition:'all 0.3s ease' }}>
@@ -161,7 +169,7 @@ export default function Dashboard() {
 
           {/* GREETING */}
           <div style={{ marginBottom:'28px', animation:'fadeIn 0.5s ease' }}>
-            <h1 style={{ fontSize:'1.7rem', fontWeight:'800', color:s.text, marginBottom:'6px' }}>
+            <h1 className="greeting" style={{ fontSize:'1.7rem', fontWeight:'800', color:s.text, marginBottom:'6px' }}>
               {greeting}, {user.name}! 👋
             </h1>
             <p style={{ color:s.textSec, fontSize:'0.95rem' }}>
@@ -205,7 +213,7 @@ export default function Dashboard() {
           </div>
 
           {/* STATS */}
-          <div style={{
+          <div className="stats-grid" style={{
             display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',
             gap:'12px', marginBottom:'20px',
           }}>
@@ -241,7 +249,7 @@ export default function Dashboard() {
           {/* QUICK ACTIONS */}
           <div style={{ marginBottom:'20px' }}>
             <div style={{ fontWeight:'700', color:s.text, fontSize:'1rem', marginBottom:'14px' }}>Quick Actions</div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+            <div className="quick-actions" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
               {[
                 { icon:'💬', label:'Talk to AI',     sub:'Start a session',      color:'#4A6CF7', path:'/chat' },
                 { icon:'🎮', label:'Play a game',    sub:'Train your brain',     color:'#8B5CF6', path:'/games' },
@@ -302,7 +310,7 @@ export default function Dashboard() {
                 View all →
               </div>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
+            <div className="achievements-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'10px' }}>
               {ACHIEVEMENTS.map(a => (
                 <div key={a.label} style={{
                   padding:'12px 8px', borderRadius:'14px', textAlign:'center',
@@ -324,7 +332,7 @@ export default function Dashboard() {
         </div>
 
         {/* BOTTOM NAV */}
-        <div style={{
+        <div className="bottom-nav" style={{
           position:'fixed', bottom:0, left:0, right:0,
           background:s.card, borderTop:`1px solid ${s.border}`,
           display:'flex', padding:'8px 0 12px',
