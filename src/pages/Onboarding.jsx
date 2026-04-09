@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../utils/supabase';
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const LANGUAGES = [
@@ -275,10 +276,38 @@ export default function Onboarding() {
     setStep(s => s - 1);
   };
 
-  const finish = () => {
+  const finish = async () => {
     setFinishing(true);
-    // Save to localStorage
-    localStorage.setItem('mb_user', JSON.stringify(data));
+    
+    try {
+      // Create user in Supabase and get ID
+      const { data: userData, error: insertError } = await supabase.from('users').insert([
+        {
+          name: data.name,
+          language: data.lang,
+          goal: data.goal,
+          therapist: data.therapist,
+          created_at: new Date(),
+        }
+      ]).select();
+      
+      if (insertError) {
+        console.error('Error creating user in Supabase:', insertError);
+      } else if (userData && userData.length > 0) {
+        // Save user data to localStorage with ID from Supabase
+        const userWithId = { ...data, id: userData[0].id };
+        localStorage.setItem('mb_user', JSON.stringify(userWithId));
+        localStorage.setItem('mb_user_id', userData[0].id);
+      } else {
+        // Fallback: just save to localStorage without ID
+        localStorage.setItem('mb_user', JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      // Still save to localStorage even if Supabase fails
+      localStorage.setItem('mb_user', JSON.stringify(data));
+    }
+    
     setTimeout(() => navigate('/chat'), 1800);
   };
 

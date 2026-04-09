@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../utils/supabase';
 
 const LANGUAGES = {
   en: 'English', ru: 'Русский', kz: 'Қазақша',
@@ -198,11 +199,40 @@ export default function Chat() {
 
   const fontSizeMap = { small: '14px', medium: '16px', large: '19px' };
 
+  // Load messages from Supabase on mount
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const userId = localStorage.getItem('mb_user_id') || 'anonymous';
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true });
+        
+        if (!error && data && data.length > 0) {
+          const loadedMessages = data.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            text: msg.content,
+            time: new Date(msg.created_at),
+          }));
+          setMessages(loadedMessages);
+          setShowWelcome(false);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    };
+
+    loadMessages();
+  }, []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     const content = text || input.trim();
     if (!content) return;
     setInput('');
@@ -210,6 +240,21 @@ export default function Chat() {
 
     const userMsg = { id: Date.now(), role: 'user', text: content, time: new Date() };
     setMessages(prev => [...prev, userMsg]);
+    
+    // Save user message to Supabase
+    try {
+      await supabase.from('messages').insert([
+        {
+          user_id: localStorage.getItem('mb_user_id') || 'anonymous',
+          role: 'user',
+          content: content,
+          created_at: new Date(),
+        }
+      ]);
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+    
     setIsTyping(true);
 
     setTimeout(() => {
@@ -217,6 +262,16 @@ export default function Chat() {
       const aiMsg = { id: Date.now() + 1, role: 'ai', text: aiText, time: new Date() };
       setIsTyping(false);
       setMessages(prev => [...prev, aiMsg]);
+      
+      // Save AI response to Supabase
+      supabase.from('messages').insert([
+        {
+          user_id: localStorage.getItem('mb_user_id') || 'anonymous',
+          role: 'ai',
+          content: aiText,
+          created_at: new Date(),
+        }
+      ]).catch(error => console.error('Error saving AI response:', error));
     }, 1500 + Math.random() * 1000);
   };
 

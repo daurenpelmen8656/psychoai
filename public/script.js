@@ -91,27 +91,269 @@
             document.body.style.overflow = '';
         }
 
-        // Close modal on overlay click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) closeModals();
-            });
-        });
-
         // Close on Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeModals();
         });
 
-        // ===== AUTH HANDLERS =====
-        function handleRegister() {
-            closeModals();
-            showPage('dashboard');
+        // ===== SUPABASE INITIALIZATION =====
+        const SUPABASE_URL = 'https://zzfzkykgrvsleabnqkuq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_46WT_deH7BGTp-3OHGSj2w_JyeDYNKm';
+        let sbClient = null;
+
+        try {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase client initialized');
+            }
+        } catch (err) {
+            console.error('❌ Supabase init failed:', err);
         }
 
-        function handleLogin() {
-            closeModals();
-            showPage('dashboard');
+        // ===== AUTH STATUS HELPERS =====
+        function showAuthStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.style.display = 'block';
+            el.textContent = message;
+            if (type === 'error') {
+                el.style.background = 'rgba(239,68,68,0.1)';
+                el.style.color = '#EF4444';
+                el.style.border = '1px solid rgba(239,68,68,0.2)';
+            } else if (type === 'success') {
+                el.style.background = 'rgba(16,185,129,0.1)';
+                el.style.color = '#10B981';
+                el.style.border = '1px solid rgba(16,185,129,0.2)';
+            } else {
+                el.style.background = 'rgba(74,108,247,0.1)';
+                el.style.color = '#4A6CF7';
+                el.style.border = '1px solid rgba(74,108,247,0.2)';
+            }
+        }
+
+        function hideAuthStatus(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) el.style.display = 'none';
+        }
+
+        function setButtonLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            if (loading) {
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Please wait…';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            } else {
+                btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+
+        // ===== AUTH HANDLERS =====
+        async function handleRegister() {
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+
+            hideAuthStatus('registerStatus');
+
+            // Validation
+            if (!username || username.length < 2) {
+                showAuthStatus('registerStatus', '⚠️ Username must be at least 2 characters', 'error');
+                return;
+            }
+            if (!password || password.length < 6) {
+                showAuthStatus('registerStatus', '⚠️ Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            if (!sbClient) {
+                showAuthStatus('registerStatus', '❌ Connection error — please refresh the page', 'error');
+                return;
+            }
+
+            setButtonLoading('registerBtn', true);
+            showAuthStatus('registerStatus', '⏳ Creating your account…', 'info');
+
+            try {
+                // Use email for Supabase Auth, or generate one from username
+                const authEmail = email || (username.toLowerCase().replace(/[^a-z0-9]/g, '') + '@mindbridge.local');
+
+                const { data, error } = await sbClient.auth.signUp({
+                    email: authEmail,
+                    password: password,
+                    options: {
+                        data: {
+                            username: username,
+                            display_name: username,
+                        }
+                    }
+                });
+
+                if (error) {
+                    console.error('Registration error:', error);
+                    let msg = error.message;
+                    if (msg.includes('already registered')) {
+                        msg = 'This email is already registered. Try logging in instead.';
+                    } else if (msg.includes('valid email')) {
+                        msg = 'Please enter a valid email address.';
+                    } else if (msg.includes('password')) {
+                        msg = 'Password must be at least 6 characters long.';
+                    }
+                    showAuthStatus('registerStatus', '❌ ' + msg, 'error');
+                    setButtonLoading('registerBtn', false);
+                    return;
+                }
+
+                // Also save to users table for the app to use
+                try {
+                    const { data: userData } = await sbClient.from('users').insert([{
+                        name: username,
+                        language: 'en',
+                        goal: '',
+                        therapist: '',
+                    }]).select();
+
+                    if (userData && userData.length > 0) {
+                        localStorage.setItem('mb_user_id', userData[0].id);
+                    }
+                } catch (e) {
+                    console.warn('Could not save to users table:', e);
+                }
+
+                // Save user info
+                localStorage.setItem('mb_user', JSON.stringify({
+                    name: username,
+                    email: authEmail,
+                    lang: 'en',
+                    goal: '',
+                    therapist: '',
+                }));
+
+                showAuthStatus('registerStatus', '✅ Account created! Redirecting…', 'success');
+                
+                setTimeout(() => {
+                    closeModals();
+                    setButtonLoading('registerBtn', false);
+                    window.location.hash = '#/onboarding';
+                }, 1200);
+
+            } catch (err) {
+                console.error('Unexpected error during registration:', err);
+                showAuthStatus('registerStatus', '❌ Something went wrong. Please try again.', 'error');
+                setButtonLoading('registerBtn', false);
+            }
+        }
+
+        async function handleLogin() {
+            const emailOrUsername = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            hideAuthStatus('loginStatus');
+
+            // Validation
+            if (!emailOrUsername) {
+                showAuthStatus('loginStatus', '⚠️ Please enter your email or username', 'error');
+                return;
+            }
+            if (!password) {
+                showAuthStatus('loginStatus', '⚠️ Please enter your password', 'error');
+                return;
+            }
+
+            if (!sbClient) {
+                showAuthStatus('loginStatus', '❌ Connection error — please refresh the page', 'error');
+                return;
+            }
+
+            setButtonLoading('loginBtn', true);
+            showAuthStatus('loginStatus', '⏳ Logging in…', 'info');
+
+            try {
+                // If it's not an email, build one from the username
+                const authEmail = emailOrUsername.includes('@')
+                    ? emailOrUsername
+                    : (emailOrUsername.toLowerCase().replace(/[^a-z0-9]/g, '') + '@mindbridge.local');
+
+                const { data, error } = await sbClient.auth.signInWithPassword({
+                    email: authEmail,
+                    password: password,
+                });
+
+                if (error) {
+                    console.error('Login error:', error);
+                    let msg = error.message;
+                    if (msg.includes('Invalid login credentials')) {
+                        msg = 'Wrong email/username or password. Please try again.';
+                    } else if (msg.includes('Email not confirmed')) {
+                        msg = 'Please confirm your email before logging in.';
+                    }
+                    showAuthStatus('loginStatus', '❌ ' + msg, 'error');
+                    setButtonLoading('loginBtn', false);
+                    return;
+                }
+
+                // Try to load user data from users table
+                try {
+                    const { data: users } = await sbClient
+                        .from('users')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (users && users.length > 0) {
+                        localStorage.setItem('mb_user_id', users[0].id);
+                        localStorage.setItem('mb_user', JSON.stringify({
+                            name: users[0].name,
+                            lang: users[0].language || 'en',
+                            goal: users[0].goal || '',
+                            therapist: users[0].therapist || '',
+                        }));
+                    }
+                } catch (e) {
+                    console.warn('Could not load user profile:', e);
+                }
+
+                showAuthStatus('loginStatus', '✅ Welcome back! Redirecting…', 'success');
+
+                setTimeout(() => {
+                    closeModals();
+                    setButtonLoading('loginBtn', false);
+                    window.location.hash = '#/chat';
+                }, 1000);
+
+            } catch (err) {
+                console.error('Unexpected error during login:', err);
+                showAuthStatus('loginStatus', '❌ Something went wrong. Please try again.', 'error');
+                setButtonLoading('loginBtn', false);
+            }
+        }
+
+        // ===== GOOGLE AUTH =====
+        async function handleGoogleAuth() {
+            if (!sbClient) {
+                alert('Connection error — please refresh the page');
+                return;
+            }
+
+            try {
+                const { data, error } = await sbClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin + window.location.pathname + '#/chat',
+                    }
+                });
+
+                if (error) {
+                    console.error('Google auth error:', error);
+                    alert('Google sign-in is not configured yet. Please use email/password.');
+                }
+            } catch (err) {
+                console.error('Google auth error:', err);
+                alert('Google sign-in is not available. Please use email/password.');
+            }
         }
 
         // ===== PAGE NAVIGATION =====
@@ -299,17 +541,27 @@
         });
 
         // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href === '#') return;
-                e.preventDefault();
-                const target = document.querySelector(href);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+        function setupAnchorLinks() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href === '#') return;
+                    
+                    // Check if it's a navigation link (e.g., #/onboarding, #/chat, #/dashboard)
+                    if (href.startsWith('#/')) {
+                        e.preventDefault();
+                        window.location.hash = href;
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
             });
-        });
+        }
 
         // ===== HEADER SCROLL EFFECT =====
         window.addEventListener('scroll', () => {
@@ -321,10 +573,11 @@
             }
         });
 
-        // ===== INIT =====
+// ===== INIT =====
         document.addEventListener('DOMContentLoaded', () => {
             initMoodChart();
             handleScrollAnimations();
+            setupAnchorLinks();
 
             // Animate goal progress bars
             setTimeout(() => {
@@ -332,13 +585,24 @@
                     bar.style.width = bar.style.width;
                 });
             }, 1000);
-        });
 
-        // Close access panel on outside click
-        document.addEventListener('click', (e) => {
-            const panel = document.getElementById('accessPanel');
-            const toggle = document.querySelector('.accessibility-toggle');
-            if (!panel.contains(e.target) && !toggle.contains(e.target)) {
-                panel.classList.remove('show');
-            }
+            // ===== APP NAVIGATION ROUTING =====
+            // React Router handles navigation for #/chat, #/onboarding, #/dashboard
+            // No redirect needed - React will handle it via HashRouter
+
+            // Close access panel on outside click
+            document.addEventListener('click', (e) => {
+                const panel = document.getElementById('accessPanel');
+                const toggle = document.querySelector('.accessibility-toggle');
+                if (!panel.contains(e.target) && !toggle.contains(e.target)) {
+                    panel.classList.remove('show');
+                }
+            });
+
+            // Set up modal overlay click handlers
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) closeModals();
+                });
+            });
         });
